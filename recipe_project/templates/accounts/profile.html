@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Профиль {{ user.username }}{% endblock %}
+
+{% block content %}
+    <div class="profile-layout">
+        <div class="profile-card">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" alt="Аватар пользователя" class="profile-avatar">
+            {% else %}
+                <img src="{% static 'images/default_avatar.png' %}" alt="Аватар по умолчанию" class="profile-avatar">
+            {% endif %}
+            <div class="profile-info">
+                <h2>{{ user.username }}</h2>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Статус:</strong> {% if user.is_active %}Активирован 🎉{% else %}Не активирован 🚨{% endif %}</p>
+                <p><small>Дата регистрации: {{ user.date_joined|date:"d.m.Y" }}</small></p>
+            </div>
+        </div>
+
+        <div>
+            {% if user.unconfirmed_email %}
+            <div class="message-alert info unconfirmed-email-alert">
+                <p>
+                    Вы запросили смену Email на <strong>{{ user.unconfirmed_email }}</strong>.
+                    Пожалуйста, проверьте почту и перейдите по ссылке, чтобы завершить процесс.
+                    <a href="{% url 'resend_email_change_email' %}" class="resend-link">Отправить письмо повторно.</a>
+                </p>
+            </div>
+            {% endif %}
+
+            <section class="profile-edit-section">
+                <h2 class="section-title">Редактировать профиль и Email</h2>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <p>Текущий Email: <strong>{{ user.email }}</strong></p>
+
+                    <div class="form-group">
+                        {{ profile_form.new_email.label_tag }}
+                        {{ profile_form.new_email }}
+                        {{ profile_form.new_email.errors }}
+                        <small>При изменении Email потребуется повторное подтверждение.</small>
+                    </div>
+
+                    <div class="form-group">
+                        {{ profile_form.avatar.label_tag }}
+                        {% if user.avatar %}<p>Текущий файл: <a href="{{ user.avatar.url }}" target="_blank">Посмотреть</a></p>{% endif %}
+                        {{ profile_form.avatar }}
+                        {{ profile_form.avatar.errors }}
+                    </div>
+
+                    <button type="submit">Сохранить изменения</button>
+
+                    <p class="change-password-link"><a href="{% url 'password_change' %}">Сменить пароль</a></p>
+                </form>
+            </section>
+
+            <section class="profile-recipes" style="margin-top: 30px;">
+                <h2 class="section-title">Ваши рецепты</h2>
+                <ul class="recipe-list-small">
+                    {% for recipe in user_recipes %}
+                        <li><a href="{% url 'recipe_detail' recipe.pk %}">{{ recipe.title }} ({{ recipe.created_at|date:"d.m.Y" }})</a></li>
+                    {% empty %}
+                        <li>У вас пока нет рецептов. <a href="{% url 'recipe_add' %}">Добавьте первый!</a></li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+    </div>
+{% endblock %}

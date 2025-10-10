@@ -1,0 +1,17 @@
+<p>Здравствуйте, {{ user.get_username }},</p>
+
+<p>Вы запросили смену Email-адреса на <strong>{{ new_email }}</strong> на сайте RecipeBook.</p>
+
+<p>Для подтверждения нового адреса, пожалуйста, перейдите по следующей ссылке:</p>
+
+<p style="margin: 20px 0;">
+    <a href="http://{{ domain }}{% url 'confirm_email_change' uidb64=uid token=token %}"
+       style="background-color: #FF7043; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Подтвердить новый Email
+    </a>
+</p>
+
+<p>Если кнопка не работает, скопируйте и вставьте ссылку в браузер:</p>
+<p>http://{{ domain }}{% url 'confirm_email_change' uidb64=uid token=token %}</p>
+
+<p>С уважением,<br>Команда RecipeBook</p>

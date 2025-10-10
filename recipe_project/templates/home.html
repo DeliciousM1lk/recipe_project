@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - RecipeBook{% endblock %}
+
+{% block content %}
+    <h1>Найдите свой идеальный рецепт!</h1>
+
+    <form method="get" action="{% url 'recipe_list' %}" class="search-form">
+        <input type="text" name="q" placeholder="Поиск рецептов..." value="{{ request.GET.q|default:'' }}">
+        <button type="submit">🔍 Искать</button>
+    </form>
+
+    <section class="categories">
+        <h2>Популярные Категории</h2>
+        <div class="category-list">
+            {% for category in categories %}
+            <a href="{% url 'recipe_list' %}?category={{ category.id }}" class="category-card">
+                {{ category.name }} ({{ category.recipe_count }})
+            </a>
+            {% empty %}
+            <p>Категории отсутствуют.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+     <section class="latest-recipes">
+        <h2>Последние рецепты</h2>
+        <div class="recipe-list-grid"> {# ИЗМЕНЕНО: новый класс для сетки #}
+            {% for recipe in latest_recipes %}
+            <div class="recipe-card">
+                {% if recipe.image %}
+                <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+                {% endif %}
+                <h3><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></h3>
+                <p>{{ recipe.description|truncatewords:20 }}</p>
+                <small>Автор: {{ recipe.author.username }}</small>
+                <small>📅 {{ recipe.created_at|date:"d.m.Y" }}</small>
+            </div>
+            {% empty %}
+            <p>Рецептов пока нет.</p>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}

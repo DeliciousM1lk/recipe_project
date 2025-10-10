@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+<div class="form-wrapper">
+    <h2>🚪 Войти в RecipeBook</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Войти</button>
+        <p class="link"><a href="{% url 'password_reset' %}">Забыли пароль?</a></p>
+        <p class="link"><a href="{% url 'register' %}">Нет аккаунта? Зарегистрироваться</a></p>
+    </form>
+</div>
+{% endblock %}

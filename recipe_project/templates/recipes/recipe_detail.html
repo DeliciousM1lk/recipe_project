@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ recipe.title }}{% endblock %}
+
+{% block content %}
+<div class="recipe-detail-layout">
+    <div class="recipe-detail-header">
+        <h1>{{ recipe.title }}</h1>
+        <p class="recipe-meta">
+            Категория: <strong>{{ recipe.category.name }}</strong> |
+            Автор: {{ recipe.author.username }} |
+            {{ recipe.created_at|date:"d.m.Y" }}
+        </p>
+    </div>
+
+    {% if recipe.image %}
+    <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-image">
+    {% endif %}
+
+    <div class="recipe-section">
+        <h3>Описание</h3>
+        <p>{{ recipe.description }}</p>
+    </div>
+
+    <div class="recipe-section">
+        <h3>Ингредиенты</h3>
+        <p>{{ recipe.ingredients|linebreaksbr }}</p>
+    </div>
+
+    <div class="recipe-section">
+        <h3>Шаги приготовления</h3>
+        <p>{{ recipe.steps|linebreaksbr }}</p>
+    </div>
+
+    {% if user.is_authenticated and user == recipe.author %}
+    <div class="recipe-actions">
+        <a href="{% url 'recipe_edit' recipe.pk %}">✏️ Редактировать</a>
+        <a href="{% url 'recipe_delete' recipe.pk %}" style="background-color: #FADBD8; color: var(--color-error);">
+            🗑️ Удалить
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="comments-section">
+        <h2>Комментарии ({{ recipe.comments.count }})</h2>
+
+        {% for comment in recipe.comments.all %}
+        <div class="comment-item">
+            <div class="comment-avatar">
+                {% if comment.user.avatar %}
+                <img src="{{ comment.user.avatar.url }}" alt="{{ comment.user.username }}'s avatar" width="30">
+                {% else %}
+                <img src="{% static 'images/default_avatar.png' %}" alt="Стандартный аватар" width="30">
+                {% endif %}
+            </div>
+
+            <div class="comment-content">
+                <p><strong>{{ comment.user.username }}:</strong> {{ comment.text }}</p>
+                <small>{{ comment.created_at|date:"d.m.Y H:i" }}</small>
+
+                {% if user.is_authenticated and user == comment.user or user.is_authenticated and user.is_staff %}
+                <div class="comment-actions" style="margin-top: 5px;">
+                    <a href="{% url 'comment_delete' comment.pk %}"
+                       class="btn btn-danger btn-sm"
+                       style="background-color: #f8d7da; color: #a94442; padding: 3px 8px; border-radius: 6px; text-decoration: none;">
+                        🗑️ Удалить
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>Комментариев пока нет. Будьте первым!</p>
+        {% endfor %}
+
+        {% if user.is_authenticated %}
+        <div class="comment-form-wrapper form-wrapper" style="box-shadow: none;">
+            <h3>Добавить комментарий:</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                <button type="submit">Отправить комментарий</button>
+            </form>
+        </div>
+        {% else %}
+        <p>
+            Для добавления комментария, пожалуйста,
+            <a href="{% url 'login' %}">войдите</a> или
+            <a href="{% url 'register' %}">зарегистрируйтесь</a>.
+        </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

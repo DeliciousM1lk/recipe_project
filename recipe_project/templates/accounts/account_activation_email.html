@@ -1,0 +1,15 @@
+<p>Здравствуйте, {{ user.get_username }},</p>
+
+<p>Спасибо за регистрацию на RecipeBook! Для завершения регистрации и активации вашего аккаунта, пожалуйста, перейдите по следующей ссылке:</p>
+
+<p style="margin: 20px 0;">
+    <a href="http://{{ domain }}{% url 'activate' uidb64=uid token=token %}"
+       style="background-color: #FF7043; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        Активировать аккаунт
+    </a>
+</p>
+
+<p>Если кнопка не работает, скопируйте и вставьте ссылку в браузер:</p>
+<p>http://{{ domain }}{% url 'activate' uidb64=uid token=token %}</p>
+
+<p>С уважением,<br>Команда RecipeBook</p>

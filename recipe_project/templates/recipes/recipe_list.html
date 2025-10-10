@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Все рецепты{% endblock %}
+
+{% block content %}
+<h1>Все рецепты</h1>
+
+<form method="get" class="search-form">
+    <input type="text" name="q" placeholder="Поиск рецептов..." value="{{ search_query|default_if_none:'' }}">
+    <button type="submit">🔍</button>
+</form>
+
+<div class="filter-categories">
+    <a href="{% url 'recipe_list' %}" class="{% if not request.GET.category and not request.GET.q %}active{% endif %}">Все</a>
+    {% for category in categories %}
+    <a href="?category={{ category.id }}{% if search_query %}&q={{ search_query }}{% endif %}"
+       class="{% if category.id|stringformat:'s' == request.GET.category %}active{% endif %}">
+        {{ category.name }}
+    </a>
+    {% endfor %}
+</div>
+
+<div class="recipe-list">
+    {% for recipe in recipes %}
+    <div class="recipe-card">
+        {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}">
+        {% endif %}
+        <div class="recipe-card-content">
+            <h3><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></h3>
+            <p>{{ recipe.description|truncatewords:20 }}</p>
+            <small>Автор: {{ recipe.author.username }}</small>
+            <small>Опубликовано: {{ recipe.created_at|date:"d.m.Y" }}</small>
+        </div>
+    </div>
+    {% empty %}
+    <p>Рецептов не найдено.</p>
+    {% endfor %}
+</div>
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">« Предыдущая</a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <span class="current">{{ num }}</span>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <a href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">Следующая »</a>
+    {% endif %}
+</div>
+
+{% endblock %}
