@@ -9,75 +9,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <div class="container header-container">
-            <a href="{% url 'home' %}" class="logo">🍳 RecipeBook</a>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'recipe_list' %}">Все рецепты</a></li>
-                    {% if user.is_authenticated %}
-                        <li><a href="{% url 'recipe_add' %}">➕ Добавить рецепт</a></li>
-                        <li><a href="{% url 'profile' %}">Профиль ({{ user.username }})</a></li>
-                        <li>
-                            <form method="post" action="{% url 'logout' %}" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="logout-link">Выйти</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li><a href="{% url 'login' %}">Войти</a></li>
-                        <li><a href="{% url 'register' %}">Регистрация</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </div>
-    </header>
-
-    <main>
-        <div class="container">
-            {% if messages %}
-                {% for message in messages %}
-                <div class="message-alert {{ message.tags }}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            {% endif %}
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; 2024 RecipeBook. Сделано с любовью к кулинарии. </p>
-        </div>
-    </footer>
-
-    {% if user.is_authenticated and not user.is_active %}
-    <div id="activationModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="document.getElementById('activationModal').style.display='none'">&times;</span>
-            <h2>🚨 Требуется активация аккаунта</h2>
-            <p>Ваш аккаунт еще не активирован. Для полноценного использования сайта, пожалуйста, проверьте почту (<strong>{{ user.email }}</strong>) и перейдите по ссылке.</p>
-            <p>Если вы не получили письмо, вы можете <a href="{% url 'resend_activation_email' %}" class="button">Отправить его повторно</a>.</p>
-        </div>
+<header>
+    <div class="container header-container">
+        <a href="{% url 'home' %}" class="logo">🍳 RecipeBook</a>
+        <nav>
+            <ul>
+                <li><a href="{% url 'recipe_list' %}">Все рецепты</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'recipe_add' %}">➕ Добавить рецепт</a></li>
+                <li><a href="{% url 'profile' %}">Профиль ({{ user.username }})</a></li>
+                <li>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-link">Выйти</button>
+                    </form>
+                </li>
+                {% else %}
+                <li><a href="{% url 'login' %}">Войти</a></li>
+                <li><a href="{% url 'register' %}">Регистрация</a></li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
+</header>
 
-    <script>
-        window.onload = function() {
-            var modal = document.getElementById('activationModal');
-            var closeBtn = document.querySelector('.close-button');
+<main>
+    <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="message-alert {{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
 
-            if (modal && !window.location.pathname.includes('/activate/')) {
-                modal.style.display = "block";
-
-                window.onclick = function(event) {
-                    if (event.target == modal) {
-                        modal.style.display = "none";
-                    }
-                }
-            }
-        }
-    </script>
-    {% endif %}
+<footer>
+    <div class="container">
+        <p>&copy; 2024 RecipeBook. Сделано с любовью к кулинарии. </p>
+    </div>
+</footer>
+{% block extra_js %}
+{% endblock %}
 </body>
 </html>

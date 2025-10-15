@@ -2,12 +2,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Recipe, Category, Comment
-from .forms import RecipeForm, CommentForm
+from .forms import RecipeForm, CommentForm, StepFormSet  # Импортировать StepFormSet
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy, reverse
 from django.http import Http404
 from django.db.models import Count
+from django.db import transaction  # Для атомарных операций
 
 
 def home(request):
@@ -85,9 +86,42 @@ class RecipeCreateView(CreateView):
     template_name = 'recipes/recipe_form.html'
     success_url = reverse_lazy('recipe_list')
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['step_formset'] = StepFormSet(self.request.POST, self.request.FILES)
+        else:
+            data['step_formset'] = StepFormSet()
+        return data
+
     def form_valid(self, form):
-        form.instance.author = self.request.user
-        return super().form_valid(form)
+        context = self.get_context_data()
+        step_formset = context['step_formset']
+
+        with transaction.atomic():
+            form.instance.author = self.request.user
+            self.object = form.save()
+
+            if step_formset.is_valid():
+                step_formset.instance = self.object
+                steps = step_formset.save(commit=False)
+
+                for i, step in enumerate(steps):
+                    if not step.pk or step.pk and step_formset.forms[i] not in step_formset.deleted_forms:
+                        step.step_number = i + 1
+                        step.save()
+
+                for step_form in step_formset.deleted_forms:
+                    if step_form.instance.pk:
+                        step_form.instance.delete()
+
+                return redirect(self.get_success_url())
+            else:
+                return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        # Переопределяем form_invalid для отображения ошибок Formset
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 @method_decorator(login_required, name='dispatch')
@@ -100,6 +134,45 @@ class RecipeUpdateView(UpdateView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(author=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['step_formset'] = StepFormSet(self.request.POST, self.request.FILES, instance=self.object)
+        else:
+            data['step_formset'] = StepFormSet(instance=self.object)
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        step_formset = context['step_formset']
+
+        with transaction.atomic():
+            # 1. Сначала сохраняем Recipe
+            self.object = form.save()
+
+            # 2. Обрабатываем Formset
+            if step_formset.is_valid():
+                step_formset.instance = self.object
+                steps = step_formset.save(commit=False)
+
+                # Обновление step_number
+                for i, step in enumerate(steps):
+                    if not step.pk or step.pk and step_formset.forms[i] not in step_formset.deleted_forms:
+                        step.step_number = i + 1
+                        step.save()
+
+                for step_form in step_formset.deleted_forms:
+                    if step_form.instance.pk:
+                        step_form.instance.delete()
+
+                return redirect(self.get_success_url())
+            else:
+                return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        # Переопределяем form_invalid для отображения ошибок Formset
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 @method_decorator(login_required, name='dispatch')

@@ -1,10 +1,95 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Добавить/Редактировать рецепт{% endblock %}
+
 {% block content %}
-<h2>{% if recipe %}Редактировать{% else %}Добавить{% endif %} рецепт</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Сохранить</button>
-</form>
+<div class="container">
+    <h2>{% if recipe %}Редактировать{% else %}Добавить{% endif %} рецепт</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <hr>
+        <h3>Шаги приготовления:</h3>
+
+        {{ step_formset.management_form }}
+
+        <div id="step-formset-container">
+            {% for form in step_formset %}
+            <div class="step-form-wrapper" data-form-index="{{ forloop.counter0 }}">
+
+                <div class="step-header clearfix">
+                    <h4>Шаг {{ forloop.counter }}</h4>
+                    <button type="button" class="remove-step-button-icon" title="Удалить шаг">
+                        ✖
+                    </button>
+                </div>
+
+                <div class="step-form-fields">
+                    {{ form.id }}
+                    {{ form.DELETE }}
+
+                    <p>
+                        <label for="{{ form.instruction.id_for_label }}">Инструкция:</label><br>
+                        {{ form.instruction }}
+                        {% if form.instruction.errors %}
+                            <small class="error">{{ form.instruction.errors }}</small>
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <label for="{{ form.image.id_for_label }}">Изображение (опционально):</label><br>
+                        {{ form.image }}
+                        {% if form.image.errors %}
+                            <small class="error">{{ form.image.errors }}</small>
+                        {% endif %}
+                        {% if form.instance.image %}
+                            <p>Текущее изображение: <a href="{{ form.instance.image.url }}">Просмотр</a></p>
+                        {% endif %}
+                    </p>
+                </div>
+                <hr>
+            </div>
+            {% endfor %}
+
+            <div id="empty-form" class="step-form-wrapper" style="display: none;">
+
+                <div class="step-header clearfix">
+                    <h4>Шаг <span class="step-number-placeholder"></span></h4>
+                    <button type="button" class="remove-step-button-icon" title="Удалить шаг">
+                        ✖
+                    </button>
+                </div>
+
+                <div class="step-form-fields">
+                    {{ step_formset.empty_form.id }}
+                    {{ step_formset.empty_form.DELETE }}
+
+                    <p>
+                        <label for="{{ step_formset.empty_form.instruction.id_for_label }}">Инструкция:</label><br>
+                        {{ step_formset.empty_form.instruction }}
+                    </p>
+
+                    <p>
+                        <label for="{{ step_formset.empty_form.image.id_for_label }}">Изображение (опционально):</label><br>
+                        {{ step_formset.empty_form.image }}
+                    </p>
+                </div>
+                <hr>
+            </div>
+
+        </div>
+
+        <button type="button" id="add-step-button" class="btn btn-primary">+</button>
+
+        <br><br>
+        <button type="submit" class="btn btn-success">Сохранить рецепт</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/formset_handler.js' %}"></script>
 {% endblock %}
