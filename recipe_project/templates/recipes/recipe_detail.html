@@ -30,7 +30,21 @@
 
     <div class="recipe-section">
         <h3>Шаги приготовления</h3>
-        <p>{{ recipe.steps|linebreaksbr }}</p>
+        {% if recipe.steps.all %}
+        <ol class="recipe-steps-list">
+            {% for step in recipe.steps.all %}
+            <li class="step-item">
+                <p><strong>Шаг {{ step.step_number }}:</strong> {{ step.instruction|linebreaksbr }}</p>
+                {% if step.image %}
+                <img src="{{ step.image.url }}" alt="Шаг {{ step.step_number }}" class="step-image">
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p>Шаги приготовления не добавлены.</p>
+        {% endif %}
+
     </div>
 
     {% if user.is_authenticated and user == recipe.author %}
